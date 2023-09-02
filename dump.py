@@ -37,6 +37,7 @@ Password = 'alpine'
 Host = 'localhost'
 Port = 2222
 KeyFileName = None
+OutputDir = os.getcwd()
 
 TEMP_DIR = tempfile.gettempdir()
 PAYLOAD_DIR = 'Payload'
@@ -73,7 +74,7 @@ def get_usb_iphone():
 
 
 def generate_ipa(path, display_name):
-    ipa_filename = display_name + '.ipa'
+    ipa_filename = display_name + ' -- ' + bundle_identifier + '.ipa'
 
     print('Generating "{}"'.format(ipa_filename))
     try:
@@ -86,7 +87,8 @@ def generate_ipa(path, display_name):
                 shutil.move(from_dir, to_dir)
 
         target_dir = './' + PAYLOAD_DIR
-        zip_args = ('zip', '-qr', os.path.join(os.getcwd(), ipa_filename), target_dir)
+        ipa_full_filename = os.path.join(os.getcwd(), OutputDir, ipa_filename)
+        zip_args = ('zip', '-qr', ipa_full_filename, target_dir)
         subprocess.check_call(zip_args, cwd=TEMP_DIR)
         shutil.rmtree(PAYLOAD_PATH)
     except Exception as e:
@@ -298,6 +300,8 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--user', dest='ssh_user', help='Specify SSH username')
     parser.add_argument('-P', '--password', dest='ssh_password', help='Specify SSH password')
     parser.add_argument('-K', '--key_filename', dest='ssh_key_filename', help='Specify SSH private key file path')
+    parser.add_argument('-d', '--output_dir', dest='output_ipa_dir', help='Specify the directory for the decrypted IPA file')
+   
     parser.add_argument('target', nargs='?', help='Bundle identifier or display name of the target app')
 
     args = parser.parse_args()
@@ -327,6 +331,8 @@ if __name__ == '__main__':
             Password = args.ssh_password
         if args.ssh_key_filename:
             KeyFileName = args.ssh_key_filename
+        if args.output_ipa_dir:
+            OutputDir = args.output_ipa_dir
 
         try:
             ssh = paramiko.SSHClient()
